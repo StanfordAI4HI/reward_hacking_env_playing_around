@@ -23,6 +23,8 @@ cd ../pandemic
 pip install -e .
 ```
 
+2. Install the requirements.txt file.
+
 Notes:
 - `flow_reward_misspecification/setup.py` runs a build step which attempts to install a SUMO-related wheel; if you don't have SUMO installed or don't want the wheel step to run, install the packages manually and/or install SUMO separately (see `flow_reward_misspecification/README.md` for Flow-specific setup).
 

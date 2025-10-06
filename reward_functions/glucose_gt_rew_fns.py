@@ -17,7 +17,7 @@ class MagniGroundTruthReward(RewardFunction):
     def calculate_reward(self, prev_obs: GlucoseObservation, action: float, obs: GlucoseObservation) -> float:
         """
         True reward function matching bgp.rl.reward_functions.magni_reward.
-        This is the Magni risk index without any insulin penalty.
+        This is the Magni risk index with an insulin penalty.
         """
         # Calculate Magni risk index
         bg = max(obs.bg[-1], 1)  # Ensure blood glucose is at least 1
