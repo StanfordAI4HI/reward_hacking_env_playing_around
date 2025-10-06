@@ -70,7 +70,3 @@ These keys are produced by evaluation and logging routines used with RLlib in `r
 ## References
 
 - Paper that implements the ground truth / proxy reward approach used here: https://arxiv.org/abs/2403.03185
-
-## Help & next actions
-
-- Want me to add a tiny example reward and wire it into `rl_utils/env_setups.py` as a demonstration? I can add a minimal unit test and a short example training command that runs a 1-episode evaluation to verify the three `default_policy/*` metrics are produced.
