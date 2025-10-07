@@ -24,10 +24,14 @@ class MagniGroundTruthReward(RewardFunction):
         fBG = 3.5506 * (np.log(bg) ** 0.8353 - 3.7932)
         risk = 10 * (fBG) ** 2
 
-        insulin_penalty = 25 * obs.insulin[-1]
+        # insulin_penalty = 25 * obs.insulin[-1]
         
         # Return negative risk (no insulin penalty for true reward)
-        return -1 * risk - insulin_penalty
+        reward =  -1 * risk
+        if obs.is_terminated and obs.t < obs.horizon and obs.termination_penalty is not None:
+            # return -1 * risk - insulin_penalty
+            reward -= obs.termination_penalty
+        return reward
 
 class ExpectedCostGroundTruthReward(RewardFunction):
     def calculate_reward(self, prev_obs: GlucoseObservation, action: float, obs: GlucoseObservation) -> float:
