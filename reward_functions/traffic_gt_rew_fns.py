@@ -26,7 +26,7 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
     def __init__(self) -> None:
         pass
 
-     def calculate_reward(
+    def calculate_reward(
         self,
         prev_obs: TrafficObservation,
         action: Sequence[float],
@@ -74,7 +74,7 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         t_min              : minimum acceptable time-headway (s)
         accel_threshold    : |a| below which no acceleration penalty applies
         evaluate           : if *True*, reward is simply average speed of
-                             **all** vehicles ( Flow’s evaluation mode )
+                                **all** vehicles ( Flow’s evaluation mode )
         """
         self.eta1 = eta1
         self.eta2 = eta2

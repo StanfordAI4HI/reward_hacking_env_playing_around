@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --partition=next
 #SBATCH --account=next
-#SBATCH --nodelist=next4
+#SBATCH --nodelist=next5
 #SBATCH --time=200:00:00
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:1
@@ -22,4 +22,4 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 exec 1>&2  # Redirect stdout (fd 1) to stderr (fd 2)
 
-python3 -m rl_utils.train_with_custom_rew --env-type glucose --num-workers 10 --reward-fun-type gt_reward_fn --init-checkpoint
+python3 -m rl_utils.train_with_custom_rew --env-type pandemic --num-workers 10 --reward-fun-type gt_reward_fn --init-checkpoint

@@ -178,3 +178,7 @@ cython_debug/
 core
 core.*
 *.core
+
+# Allow base policy checkpoints (override broader data/ and binary ignores)
+!data/base_policy_checkpoints/
+!data/base_policy_checkpoints/**
