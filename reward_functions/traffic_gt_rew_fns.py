@@ -1,8 +1,11 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Sequence
+
 import numpy as np
 
-from flow_reward_misspecification.flow.envs.traffic_obs_wrapper import TrafficObservation
+from flow_reward_misspecification.flow.envs.traffic_obs_wrapper import (
+    TrafficObservation,
+)
 
 
 class RewardFunction(metaclass=ABCMeta):
@@ -26,7 +29,7 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
     def __init__(self) -> None:
         pass
 
-     def calculate_reward(
+    def calculate_reward(
         self,
         prev_obs: TrafficObservation,
         action: Sequence[float],
@@ -44,14 +47,14 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
     Re-implementation of the Flow `compute_reward` logic, but expressed in
     observation-space so it can be reused outside the simulator loop.
 
-    • **Term 1 (`cost1`)** – system-level desired-velocity reward  
+    • **Term 1 (`cost1`)** – system-level desired-velocity reward
       Matches `rewards.desired_velocity`: 1 when all vehicles drive exactly
       at `target_velocity`, 0 when they are far from it.
 
-    • **Term 2 (`cost2`)** – headway penalty for each RL vehicle  
+    • **Term 2 (`cost2`)** – headway penalty for each RL vehicle
       Linear penalty when time-headway < `t_min` seconds.
 
-    • **Term 3 (`cost3`)** – acceleration penalty  
+    • **Term 3 (`cost3`)** – acceleration penalty
       Linear penalty on the mean |accel| sent to RL vehicles.
 
     The final reward is `max(η₁·cost1 + η₂·cost2 + η₃·cost3, 0)`, unless

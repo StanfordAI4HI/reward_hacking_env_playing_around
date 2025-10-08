@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reward-hacking-env"
+version = "0.1.0"
+description = "Standalone environments for reward-misspecification experiments and RL work"
+requires-python = ">=3.9,<3.12"
+dependencies = [
+    "imutils>=0.5",
+    "matplotlib>=3.5",
+    "opencv-python>=4.6",
+    "pyglet>=1.3",
+    "ray[rllib]==2.7.1",
+    "sacred>=0.8",
+    "scipy>=1.9",
+    "torch>=1.13",
+    "tqdm>=4.63",
+    "numpy>=1.22,<2",
+    "typing-extensions>=4.4",
+    "lxml>=4.9",
+    "pygame>=2.0.0",
+    "docker>=6.0.0",
+    "filelock>=3.0.0",
+    "requests<2.29",
+    "traci",
+    "joblib",
+    "flow",
+    "simglucose",
+    "pandemic-simulator",
+]
+
+[tool.uv.sources]
+simglucose = { path = "bgp", editable = true }
+flow = { path = "flow_reward_misspecification", editable = true }
+pandemic-simulator = { path = "pandemic", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["rl_utils", "reward_functions", "utils"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+ignore = ["F401", "E722"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

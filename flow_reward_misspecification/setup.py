@@ -19,11 +19,15 @@ class build_ext(_build_ext.build_ext):
     """External buid commands."""
 
     def run(self):
-        """Install traci wheels."""
-        subprocess.check_call(
-            ['python3','-m','pip', 'install',
-             'https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/'
-             'sumotools-0.4.0-py3-none-any.whl'])
+        """Install traci wheels (optional - install SUMO separately if this fails)."""
+        try:
+            subprocess.check_call(
+                ['python3','-m','pip', 'install',
+                 'https://akreidieh.s3.amazonaws.com/sumo/flow-0.4.0/'
+                 'sumotools-0.4.0-py3-none-any.whl'])
+        except subprocess.CalledProcessError:
+            print("Warning: Failed to install SUMO tools wheel. "
+                  "Please install SUMO separately if you need traffic environments.")
 
 
 class BinaryDistribution(Distribution):

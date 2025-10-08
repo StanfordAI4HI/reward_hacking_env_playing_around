@@ -39,12 +39,12 @@ class EvaluationOpts:
     population_sizes: Optional[Sequence[int]] = None
     strategies: Optional[Sequence[Union[int, Sequence[StageSchedule]]]] = None
     pandemic_regulations: Optional[List[PandemicRegulation]] = None
-    default_sim_config: PandemicSimConfig = small_town_config
+    default_sim_config: PandemicSimConfig = dataclasses.field(default_factory=lambda: small_town_config)
     sim_opts: Optional[List[PandemicSimOpts]] = None
 
     enable_warm_up: bool = False
     max_episode_length: int = 120
-    data_saver_path: Path = Path("../results/")
+    data_saver_path: Path = dataclasses.field(default_factory=lambda: Path("../results/"))
     data_filename: str = dataclasses.field(init=False)
     render_runs: bool = False
 
