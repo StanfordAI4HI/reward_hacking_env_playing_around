@@ -67,6 +67,15 @@ def evaluate_policy_during_training(algo, env_config, iteration):
     
     return mean_reward, std_reward
 
+def strip_hist_stats(x):
+    if isinstance(x, dict):
+        x.pop("hist_stats", None)   # remove at this level
+        for v in x.values():
+            strip_hist_stats(v)     # recurse into nested dicts/lists
+    elif isinstance(x, list):
+        for item in x:
+            strip_hist_stats(item)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--env-type", type=str, default="pandemic", 
@@ -170,7 +179,10 @@ def main():
         result = algo.train()
         
         print(f"Iteration {iteration + 1}/{args.num_iterations}")
+        #remove hist stats to save space
+        strip_hist_stats(result)
         print (result)
+        
         with open(args.env_type + f"_running_results/{args.reward_fun_type}/iter_{iteration}.pkl", 'wb') as file:
             pickle.dump(result, file)
 

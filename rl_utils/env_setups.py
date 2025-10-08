@@ -6,6 +6,7 @@ from flow.utils.registry import make_create_env
 import json
 from rl_utils.reward_wrapper import RewardWrapper
 from rl_utils.reward_wrapper import SumReward
+from occupancy_measures.envs.glucose_true_rew_wrapper import GlucoseWrapper
 
 def create_env_pandemic(config,reward_function,wrap_env):
     base_env = PandemicPolicyGymEnv(config)
@@ -30,8 +31,7 @@ def create_env_glucose(config, reward_function,wrap_env):
     base_env = SimglucoseEnv(config)
     if not wrap_env:
         return base_env
-    return RewardWrapper(base_env, env_name="glucose", reward_function=reward_function)
-
+    return GlucoseWrapper(RewardWrapper(base_env, env_name="glucose", reward_function=reward_function))
 
 def setup_glucose_env(config,wrap_env):
     if config.get("reward_fun_type") == "gt_reward_fn":

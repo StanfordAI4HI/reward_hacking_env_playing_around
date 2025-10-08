@@ -179,3 +179,6 @@ core
 core.*
 *.core
 logs/
+# Allow base policy checkpoints (override broader data/ and binary ignores)
+!data/base_policy_checkpoints/
+!data/base_policy_checkpoints/**

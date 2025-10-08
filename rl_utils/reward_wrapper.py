@@ -58,12 +58,12 @@ class RewardWrapper(Wrapper):
         super().__init__(env)
         self.env_name = env_name
         self.reward_function = reward_function #is of type SumReward
-        print ("created reward wrapper...")
+        # print ("created reward wrapper...")
         self.ep_return = 0
       
   
     def reset(self, **kwargs):
-        print ("comptued return inside RewardWrapper:", self.ep_return)
+        # print ("comptued return inside RewardWrapper:", self.ep_return)
         self.ep_return = 0
         if "pandemic" in self.env_name:
             obs, obs_np, info = self.env.reset_keep_obs_obj()
