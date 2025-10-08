@@ -52,13 +52,6 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
 
     def penalize_headway(self, rl_id2lead_id, rl_ids, ego_speeds, leader_headways):
 
-        # cost = 0.0
-        # for speed, headway in zip(ego_speeds, leader_headways):
-        #     if speed > 0:  # avoid divide-by-zero
-        #         t_headway = max(headway / speed, 0.0)
-        #         cost += min((t_headway - self.t_min) / self.t_min, 0.0)  # ≤ 0
-        # # # print (".  cost2:", cost2)
-
         cost = 0
         t_min = 1  # smallest acceptable time headway
         for  i,rl_id in enumerate(rl_ids):
@@ -70,15 +63,6 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
                 )
                 cost += min((t_headway - t_min) / t_min, 0)
 
-        # cost = 0
-        # t_min = 1  # smallest acceptable time headway
-        # for rl_id in env.rl_veh:
-        #     lead_id = env.k.vehicle.get_leader(rl_id)
-        #     if lead_id not in ["", None] and env.k.vehicle.get_speed(rl_id) > 0:
-        #         t_headway = max(
-        #             env.k.vehicle.get_headway(rl_id) / env.k.vehicle.get_speed(rl_id), 0
-        #         )
-        #         cost += min((t_headway - t_min) / t_min, 0)
         return cost
 
 
@@ -95,9 +79,9 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
             return 0.0
 
         # ------------------------------------------------------------------ #
-        # 1. commmute statistic                #
+        # 1. global velocity statistic                #
         # ------------------------------------------------------------------ #
-        commute_time = self.global_velocity(obs.all_vehicle_speeds)
+        global_velocity = self.global_velocity(obs.all_vehicle_speeds)
         # ------------------------------------------------------------------ #
         # 2. acceleration statistic                                          #
         # ------------------------------------------------------------------ #
@@ -108,7 +92,7 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
         headway_penalty = self.penalize_headway(obs.rl_id2lead_id, obs.rl_ids, obs.ego_speeds, obs.leader_headways)
         
         reward = (
-            self.eta1 * commute_time + self.eta2 * accel_penalty + self.eta3 * headway_penalty
+            self.eta1 * global_velocity + self.eta2 * accel_penalty + self.eta3 * headway_penalty
         )
         return reward
 
@@ -152,14 +136,6 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         return min(0, self.accel_threshold - mean_actions)
 
     def penalize_headway(self, rl_id2lead_id, rl_ids, ego_speeds, leader_headways):
-
-        # cost = 0.0
-        # for speed, headway in zip(ego_speeds, leader_headways):
-        #     if speed > 0:  # avoid divide-by-zero
-        #         t_headway = max(headway / speed, 0.0)
-        #         cost += min((t_headway - self.t_min) / self.t_min, 0.0)  # ≤ 0
-        # # # print (".  cost2:", cost2)
-
         cost = 0
         t_min = 1  # smallest acceptable time headway
         for  i,rl_id in enumerate(rl_ids):
@@ -170,16 +146,6 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
                     leader_headways[i] / ego_speeds[i], 0
                 )
                 cost += min((t_headway - t_min) / t_min, 0)
-
-        # cost = 0
-        # t_min = 1  # smallest acceptable time headway
-        # for rl_id in env.rl_veh:
-        #     lead_id = env.k.vehicle.get_leader(rl_id)
-        #     if lead_id not in ["", None] and env.k.vehicle.get_speed(rl_id) > 0:
-        #         t_headway = max(
-        #             env.k.vehicle.get_headway(rl_id) / env.k.vehicle.get_speed(rl_id), 0
-        #         )
-        #         cost += min((t_headway - t_min) / t_min, 0)
         return cost
 
 
@@ -204,7 +170,7 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         Returns
         -------
         float
-            Non-negative reward value.
+            reward value.
         """
        
         if getattr(obs, "fail", False):
