@@ -23,8 +23,64 @@ class RewardFunction(metaclass=ABCMeta):
         ...
 
 class PenEtAlProxyTrafficRewardFunction(RewardFunction):
-    def __init__(self) -> None:
-        pass
+   
+    def __init__(
+        self,
+        eta1: float = 1.0,
+        eta2: float = 1.0,
+        eta3: float = 0.1,
+        t_min: float = 1.0,
+        accel_threshold: float = 0.0,
+    ) -> None:
+        
+        self.eta1 = eta1
+        self.eta2 = eta2
+        self.eta3 = eta3
+        self.t_min = t_min
+        self.accel_threshold = accel_threshold
+        self._eps = np.finfo(np.float32).eps
+
+
+    def global_velocity(self, velocities):
+        return float(np.mean(velocities)) if velocities.size else 0.0
+
+    def penalize_accel(self, rl_actions):
+        if rl_actions is None:
+            return 0
+        mean_actions = np.mean(np.abs(np.array(rl_actions)))
+        return min(0, self.accel_threshold - mean_actions)
+
+    def penalize_headway(self, rl_id2lead_id, rl_ids, ego_speeds, leader_headways):
+
+        # cost = 0.0
+        # for speed, headway in zip(ego_speeds, leader_headways):
+        #     if speed > 0:  # avoid divide-by-zero
+        #         t_headway = max(headway / speed, 0.0)
+        #         cost += min((t_headway - self.t_min) / self.t_min, 0.0)  # ≤ 0
+        # # # print (".  cost2:", cost2)
+
+        cost = 0
+        t_min = 1  # smallest acceptable time headway
+        for  i,rl_id in enumerate(rl_ids):
+            # print ("rl_id2lead_id:", rl_id2lead_id)
+            lead_id = rl_id2lead_id.get(rl_id)
+            if lead_id not in ["", None] and ego_speeds[i] > 0:
+                t_headway = max(
+                    leader_headways[i] / ego_speeds[i], 0
+                )
+                cost += min((t_headway - t_min) / t_min, 0)
+
+        # cost = 0
+        # t_min = 1  # smallest acceptable time headway
+        # for rl_id in env.rl_veh:
+        #     lead_id = env.k.vehicle.get_leader(rl_id)
+        #     if lead_id not in ["", None] and env.k.vehicle.get_speed(rl_id) > 0:
+        #         t_headway = max(
+        #             env.k.vehicle.get_headway(rl_id) / env.k.vehicle.get_speed(rl_id), 0
+        #         )
+        #         cost += min((t_headway - t_min) / t_min, 0)
+        return cost
+
 
     def calculate_reward(
         self,
@@ -32,61 +88,101 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
         action: Sequence[float],
         obs: TrafficObservation,
     ) -> float:
-
+        
+       
         if getattr(obs, "fail", False):
-                # print (".    fail=True")
+            # print (".    fail=True")
             return 0.0
-        return float(np.mean(obs.all_vehicle_speeds)) if obs.all_vehicle_speeds.size else 0.0
+
+        # ------------------------------------------------------------------ #
+        # 1. commmute statistic                #
+        # ------------------------------------------------------------------ #
+        commute_time = self.global_velocity(obs.all_vehicle_speeds)
+        # ------------------------------------------------------------------ #
+        # 2. acceleration statistic                                          #
+        # ------------------------------------------------------------------ #
+        accel_penalty = self.penalize_accel(action)
+        # ------------------------------------------------------------------ #
+        # 3. headway statistic                                            #
+        # ------------------------------------------------------------------ #
+        headway_penalty = self.penalize_headway(obs.rl_id2lead_id, obs.rl_ids, obs.ego_speeds, obs.leader_headways)
+        
+        reward = (
+            self.eta1 * commute_time + self.eta2 * accel_penalty + self.eta3 * headway_penalty
+        )
+        return reward
+
 
 
 class PanEtAlTrueTrafficRewardFunction(RewardFunction):
-    """
-    Re-implementation of the Flow `compute_reward` logic, but expressed in
-    observation-space so it can be reused outside the simulator loop.
-
-    • **Term 1 (`cost1`)** – system-level desired-velocity reward  
-      Matches `rewards.desired_velocity`: 1 when all vehicles drive exactly
-      at `target_velocity`, 0 when they are far from it.
-
-    • **Term 2 (`cost2`)** – headway penalty for each RL vehicle  
-      Linear penalty when time-headway < `t_min` seconds.
-
-    • **Term 3 (`cost3`)** – acceleration penalty  
-      Linear penalty on the mean |accel| sent to RL vehicles.
-
-    The final reward is `max(η₁·cost1 + η₂·cost2 + η₃·cost3, 0)`, unless
-    a failure/ collision occurred, in which case it is **0**.
-    """
-
+   
     def __init__(
         self,
         eta1: float = 1.0,
-        eta2: float = 0.10,
-        eta3: float = 1.0,
+        eta2: float = 1.0,
+        eta3: float = 0.1,
         t_min: float = 1.0,
         accel_threshold: float = 0.0,
-        evaluate: bool = False,
     ) -> None:
-        """
-        Args
-        ----
-        eta1 / eta2 / eta3 : weights for the three cost terms (see above)
-        t_min              : minimum acceptable time-headway (s)
-        accel_threshold    : |a| below which no acceleration penalty applies
-        evaluate           : if *True*, reward is simply average speed of
-                                **all** vehicles ( Flow’s evaluation mode )
-        """
+       
         self.eta1 = eta1
         self.eta2 = eta2
         self.eta3 = eta3
         self.t_min = t_min
         self.accel_threshold = accel_threshold
-        self.evaluate = evaluate
         self._eps = np.finfo(np.float32).eps
 
-    # --------------------------------------------------------------------- #
-    # Public API                                                            #
-    # --------------------------------------------------------------------- #
+
+    def commute_time(self, velocities, rl_actions):
+        # vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
+
+        if any(velocities < -100):
+            return -10000.0
+        if len(velocities) == 0:
+            return -10000.0
+
+        commute = np.array([(v + 0.001) ** -1 for v in velocities])
+        commute = commute[commute > 0]
+        return -np.mean(commute)
+
+    def penalize_accel(self, rl_actions):
+        if rl_actions is None:
+            return 0
+        mean_actions = np.mean(np.abs(np.array(rl_actions)))
+        return min(0, self.accel_threshold - mean_actions)
+
+    def penalize_headway(self, rl_id2lead_id, rl_ids, ego_speeds, leader_headways):
+
+        # cost = 0.0
+        # for speed, headway in zip(ego_speeds, leader_headways):
+        #     if speed > 0:  # avoid divide-by-zero
+        #         t_headway = max(headway / speed, 0.0)
+        #         cost += min((t_headway - self.t_min) / self.t_min, 0.0)  # ≤ 0
+        # # # print (".  cost2:", cost2)
+
+        cost = 0
+        t_min = 1  # smallest acceptable time headway
+        for  i,rl_id in enumerate(rl_ids):
+            # print ("rl_id2lead_id:", rl_id2lead_id)
+            lead_id = rl_id2lead_id.get(rl_id)
+            if lead_id not in ["", None] and ego_speeds[i] > 0:
+                t_headway = max(
+                    leader_headways[i] / ego_speeds[i], 0
+                )
+                cost += min((t_headway - t_min) / t_min, 0)
+
+        # cost = 0
+        # t_min = 1  # smallest acceptable time headway
+        # for rl_id in env.rl_veh:
+        #     lead_id = env.k.vehicle.get_leader(rl_id)
+        #     if lead_id not in ["", None] and env.k.vehicle.get_speed(rl_id) > 0:
+        #         t_headway = max(
+        #             env.k.vehicle.get_headway(rl_id) / env.k.vehicle.get_speed(rl_id), 0
+        #         )
+        #         cost += min((t_headway - t_min) / t_min, 0)
+        return cost
+
+
     def calculate_reward(
         self,
         prev_obs: TrafficObservation,
@@ -110,57 +206,26 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         float
             Non-negative reward value.
         """
-        # ------------------------------------------------------------------ #
-        # 0. Early exit – evaluation mode or collision                       #
-        # ------------------------------------------------------------------ #
-        if self.evaluate:
-            # mean speed of *all* vehicles (m/s)
-            return float(np.mean(obs.all_vehicle_speeds)) if obs.all_vehicle_speeds.size else 0.0
-
+       
         if getattr(obs, "fail", False):
             # print (".    fail=True")
             return 0.0
 
         # ------------------------------------------------------------------ #
-        # 1. Desired-velocity term (system level)                            #
+        # 1. commmute statistic                #
         # ------------------------------------------------------------------ #
-        vel = obs.all_vehicle_speeds
-        if vel.size == 0:
-            cost1 = 0.0
-        else:
-            target = obs.target_velocity
-            max_cost = np.linalg.norm(np.full_like(vel, target))
-            cost = np.linalg.norm(vel - target)
-            cost1 = max(max_cost - cost, 0.0) / (max_cost + self._eps)  # ∈ [0, 1]
-            # print (".  cost1:", cost1)
+        commute_time = self.commute_time(obs.all_vehicle_speeds, action)
         # ------------------------------------------------------------------ #
-        # 2. Headway penalty (RL vehicles only)                              #
+        # 2. acceleration statistic                                          #
         # ------------------------------------------------------------------ #
-        cost2 = 0.0
-        for speed, headway in zip(obs.ego_speeds, obs.leader_headways):
-            if speed > 0:  # avoid divide-by-zero
-                t_headway = max(headway / speed, 0.0)
-                cost2 += min((t_headway - self.t_min) / self.t_min, 0.0)  # ≤ 0
-        # print (".  cost2:", cost2)
-
+        accel_penalty = self.penalize_accel(action)
         # ------------------------------------------------------------------ #
-        # 3. Acceleration penalty                                            #
+        # 3. headway statistic                                            #
         # ------------------------------------------------------------------ #
-        if action is None or len(action) == 0:
-            cost3 = 0.0
-        else:
-            mean_abs_accel = float(np.mean(np.abs(action)))
-            cost3 = (
-                self.accel_threshold - mean_abs_accel
-                if mean_abs_accel > self.accel_threshold
-                else 0.0
-            )  # ≤ 0
-        # print (".  cost3:", cost3)
-        # ------------------------------------------------------------------ #
-        # 4. Weighted sum, clamped to be non-negative                        #
-        # ------------------------------------------------------------------ #
+        headway_penalty = self.penalize_headway(obs.rl_id2lead_id, obs.rl_ids, obs.ego_speeds, obs.leader_headways)
+        
         reward = (
-            self.eta1 * cost1 + self.eta2 * cost2 + self.eta3 * cost3
+            self.eta1 * commute_time + self.eta2 * accel_penalty + self.eta3 * headway_penalty
         )
         return reward
 
