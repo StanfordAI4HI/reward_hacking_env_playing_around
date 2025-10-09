@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "reward-hacking-env"
 version = "0.1.0"
 description = "Standalone environments for reward-misspecification experiments and RL work"
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.9,<3.10"
 dependencies = [
     "imutils>=0.5",
     "matplotlib>=3.5",
@@ -29,6 +29,8 @@ dependencies = [
     "flow",
     "simglucose",
     "pandemic-simulator",
+    "GPUtil",
+    "loguru"
 ]
 
 [tool.uv.sources]
