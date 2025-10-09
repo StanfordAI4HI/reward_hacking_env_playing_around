@@ -1,11 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Sequence
-
 import numpy as np
 
-from flow_reward_misspecification.flow.envs.traffic_obs_wrapper import (
-    TrafficObservation,
-)
+from flow_reward_misspecification.flow.envs.traffic_obs_wrapper import TrafficObservation
 
 
 class RewardFunction(metaclass=ABCMeta):
@@ -26,16 +23,16 @@ class RewardFunction(metaclass=ABCMeta):
         ...
 
 class PenEtAlProxyTrafficRewardFunction(RewardFunction):
-
+   
     def __init__(
         self,
         eta1: float = 1.0,
-        eta2: float = 1.0,
-        eta3: float = 0.1,
+        eta2: float = 0.0,
+        eta3: float = 0.0,
         t_min: float = 1.0,
         accel_threshold: float = 0.0,
     ) -> None:
-
+        
         self.eta1 = eta1
         self.eta2 = eta2
         self.eta3 = eta3
@@ -75,8 +72,8 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
         action: Sequence[float],
         obs: TrafficObservation,
     ) -> float:
-
-
+        
+       
         if getattr(obs, "fail", False):
             # print (".    fail=True")
             return 0.0
@@ -93,7 +90,7 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
         # 3. headway statistic                                            #
         # ------------------------------------------------------------------ #
         headway_penalty = self.penalize_headway(obs.rl_id2lead_id, obs.rl_ids, obs.ego_speeds, obs.leader_headways)
-
+        
         reward = (
             self.eta1 * global_velocity + self.eta2 * accel_penalty + self.eta3 * headway_penalty
         )
@@ -102,24 +99,7 @@ class PenEtAlProxyTrafficRewardFunction(RewardFunction):
 
 
 class PanEtAlTrueTrafficRewardFunction(RewardFunction):
-    """
-    Re-implementation of the Flow `compute_reward` logic, but expressed in
-    observation-space so it can be reused outside the simulator loop.
-
-    • **Term 1 (`cost1`)** – system-level desired-velocity reward
-      Matches `rewards.desired_velocity`: 1 when all vehicles drive exactly
-      at `target_velocity`, 0 when they are far from it.
-
-    • **Term 2 (`cost2`)** – headway penalty for each RL vehicle
-      Linear penalty when time-headway < `t_min` seconds.
-
-    • **Term 3 (`cost3`)** – acceleration penalty
-      Linear penalty on the mean |accel| sent to RL vehicles.
-
-    The final reward is `max(η₁·cost1 + η₂·cost2 + η₃·cost3, 0)`, unless
-    a failure/ collision occurred, in which case it is **0**.
-    """
-
+   
     def __init__(
         self,
         eta1: float = 1.0,
@@ -128,7 +108,7 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         t_min: float = 1.0,
         accel_threshold: float = 0.0,
     ) -> None:
-
+       
         self.eta1 = eta1
         self.eta2 = eta2
         self.eta3 = eta3
@@ -192,7 +172,7 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         float
             reward value.
         """
-
+       
         if getattr(obs, "fail", False):
             # print (".    fail=True")
             return 0.0
@@ -209,7 +189,7 @@ class PanEtAlTrueTrafficRewardFunction(RewardFunction):
         # 3. headway statistic                                            #
         # ------------------------------------------------------------------ #
         headway_penalty = self.penalize_headway(obs.rl_id2lead_id, obs.rl_ids, obs.ego_speeds, obs.leader_headways)
-
+        
         reward = (
             self.eta1 * commute_time + self.eta2 * accel_penalty + self.eta3 * headway_penalty
         )
