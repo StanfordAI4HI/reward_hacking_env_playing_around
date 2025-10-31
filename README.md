@@ -31,16 +31,23 @@ Notes:
 ## Training an RL agent
 
 - The main training entrypoint provided here is `rl_utils/train_with_custom_rew.py`.
+- This script uses **PufferLib** for vectorized environment execution and PPO training.
 - Example usage to train a PPO policy using the pandemic environment:
 
 ```bash
-python rl_utils/train_with_custom_rew.py --env-type pandemic --reward-fun-type gt_reward_fn --num-iterations 100
+python3 -m rl_utils.train_with_custom_rew --vec.seed 0 --vec.num-envs 10 --vec.num-workers 2 --train.name pandemic_gt_reward_fn --train.update-epochs 100
 ```
 
-Key CLI options (see the script for full details):
-- `--env-type` : one of `pandemic`, `glucose`, `traffic`.
-- `--reward-fun-type` : which reward to use when building the environment (commonly `gt_reward_fn` or `proxy_reward_fn`).
-- `--num-iterations`, `--num-workers`, `--num-gpus`, `--seed`, `--init-checkpoint`.
+**Important Note**: Currently, only the **pandemic environment** is fully supported with PufferLib. The **traffic** and **glucose** environments use custom action distributions (continuous Beta distributions) that are not yet compatible with PufferLib's sampling interface.
+
+Key CLI options (see PufferLib config for full details):
+- `--train.name` : Environment and reward type, format: `{env_name}_{reward_type}` (e.g., `pandemic_gt_reward_fn`, `pandemic_proxy_reward_fn`)
+  - Environment name can be: `pandemic` (currently supported), `glucose` (in progress), `traffic` (in progress)
+  - Reward type can be: `gt_reward_fn` (ground truth), `proxy_reward_fn` (proxy)
+- `--vec.seed` : Random seed
+- `--vec.num-envs` : Number of parallel environments
+- `--vec.num-workers` : Number of worker processes for environment parallelization
+- `--train.update-epochs` : Number of training epochs/updates
 
 ## Adding a new reward function
 
