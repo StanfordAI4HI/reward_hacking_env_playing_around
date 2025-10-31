@@ -28,8 +28,8 @@ import warnings
 import logging
 
 from copy import deepcopy
-from ray.tune.registry import register_env
-from ray.rllib.env.multi_agent_env import make_multi_agent
+# from ray.tune.registry import register_env
+# from ray.rllib.env.multi_agent_env import make_multi_agent
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -728,7 +728,7 @@ class SimglucoseEnv(gymnasium.Env):
     
     @property
     def action_space(self):
-        return spaces.Box(low=0, high=0.1, shape=(1,), dtype=np.float64)
+        return spaces.Box(low=0, high=0.1, shape=(1,))
 
     @property
     def observation_space(self):
@@ -745,7 +745,7 @@ class SimglucoseEnv(gymnasium.Env):
             )
 
 
-register_env("glucose_env", lambda config: SimglucoseEnv(config))
-register_env(
-    "glucose_env_multiagent", make_multi_agent(lambda config: SimglucoseEnv(config))
-)
+# register_env("glucose_env", lambda config: SimglucoseEnv(config))
+# register_env(
+#     "glucose_env_multiagent", make_multi_agent(lambda config: SimglucoseEnv(config))
+# )

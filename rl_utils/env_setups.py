@@ -1,7 +1,6 @@
 import numpy as np
 from bgp.simglucose.envs.simglucose_gym_env import SimglucoseEnv
 from pandemic_simulator.environment.pandemic_env import PandemicPolicyGymEnv
-from occupancy_measures.experiments.traffic_experiments import create_traffic_config
 from flow.utils.registry import make_create_env
 import json
 from rl_utils.reward_wrapper import RewardWrapper

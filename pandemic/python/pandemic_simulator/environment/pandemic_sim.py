@@ -57,7 +57,6 @@ class PandemicSim:
     _hospital_ids: List[LocationID]
     _persons: Sequence[Person]
     _state: PandemicSimState
-
     def __init__(
         self,
         locations: Sequence[Location],
@@ -483,6 +482,8 @@ class PandemicSim:
         # sync all locations
         for location in self._id_to_location.values():
             location.sync(self._state.sim_time)
+        #     print ("Synced location:", location.id)
+        # print ("-------------")
         self._registry.update_location_specific_information()
 
         # call person steps (randomize order)

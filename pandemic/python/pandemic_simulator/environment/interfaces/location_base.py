@@ -55,6 +55,10 @@ class BaseLocation(Location[_State], metaclass=ABCMeta):
 
         self._state = deepcopy(self._init_state)
         self._registry.register_location(self)
+        
+        # Initialize _current_sim_time to avoid AttributeError when environment is copied/wrapped
+        # This will be properly set by sync() during step()
+        self._current_sim_time = SimTime(hour=0, day=0)
 
     @property
     def id(self) -> LocationID:

@@ -1,5 +1,6 @@
 import pandemic_simulator as ps
 import torch
+
 from pandemic_simulator.environment.interfaces import InfectionSummary
 # from pandemic_simulator.environment.pandemic_env import PandemicPolicyGymEnv
 from pandemic_simulator.environment.reward import (
@@ -8,117 +9,66 @@ from pandemic_simulator.environment.reward import (
     SumReward,
 )
 from pandemic_simulator.environment.simulator_opts import PandemicSimOpts
-from ray.rllib.algorithms.ppo import PPOConfig
-from ray.rllib.utils.typing import AlgorithmConfigDict
+# from ray.rllib.algorithms.ppo import PPOConfig
+# from ray.rllib.utils.typing import AlgorithmConfigDict
 
-from occupancy_measures.envs.pandemic_callbacks import PandemicCallbacks
+# from occupancy_measures.envs.pandemic_callbacks import PandemicCallbacks
 from occupancy_measures.models.model_with_discriminator import (
     ModelWithDiscriminatorConfig,
 )
 
-def get_ppo_config(env_config, num_gpus, seed,num_rollout_workers=1):
-    env_name = "pandemic_env"
+def get_ppo_config():
+    """
+    PPO configuration for pandemic environment.
+    """
+
     horizon = 192
-    rollout_fragment_length = (horizon + 1) * 2
-    lr = 0.0003
-    gamma = 0.99
-    kl_target = 0.01
-    entropy_coeff = 0.01
-    entropy_coeff_start = 0.1
-    entropy_coeff_end = entropy_coeff
-    entropy_coeff_horizon = 500000
-    entropy_coeff_schedule = [
-        [0, entropy_coeff_start],
-        [entropy_coeff_horizon, entropy_coeff_end],
-    ]
-    train_batch_size = max(
-        rollout_fragment_length * 10, rollout_fragment_length
-    )
-    sgd_minibatch_size = min(64, train_batch_size)
-    batch_mode = "truncate_episodes"
-
-    vf_loss_coeff = 0.5
-    vf_clip_param = 20
-    clip_param = 0.3
-    gae_lambda = 0.95
-    num_sgd_iter = 5
-    grad_clip = 10
-    callbacks = PandemicCallbacks
-
-    obs_history_size = 3
-    num_days_in_obs = 8
+    rollout_fragment_length = (horizon + 1) * 2 #bptt_horizon
+    env_name = "pandemic_env"
+    lr = 0.0003 #learning_rate
+    gamma = 0.99 #gamma
+    kl_target = 0.01  # target_kl
+    entropy_coeff = 0.01 #ent_coef
+    
+    
+    vf_loss_coeff = 0.5 #vf_coef
+    vf_clip_param = 20  # RLLIB-SPECIFIC: Different from CleanRL's clip_vloss
+    clip_param = 0.3 #vf_clip_coef
+    gae_lambda = 0.95 #gae_lambda
+    num_sgd_iter = 5 #update_epochs
+    grad_clip = 10 #max_grad_norm
+    # callbacks = PandemicCallbacks  # RLLIB-SPECIFIC: No CleanRL equivalent
 
     # model
-    width = 128  # Varied from 4 to 128
-    depth = 2  # Varied from 1 to 2
+    width = 128
+    depth = 2
     fcnet_hiddens = [width] * depth
-    discriminator_width = 256
-    discriminator_depth = 2
-    discriminator_state_dim = 0
-    use_action_for_disc = True
-    use_history_for_disc = False
-    time_dim = 1
-    disc_history = num_days_in_obs  # how many days of history to store
-    if not use_history_for_disc:
-        disc_history = 1
-    use_env_sim_step_states = False
-    flattened_history_size = disc_history
-    if use_env_sim_step_states:
-        flattened_history_size *= obs_history_size
-    if disc_history < num_days_in_obs:
-        discriminator_state_dim = flattened_history_size * 13
-    history_range = (flattened_history_size * -1, 0)
-    vf_share_layers = True
-    custom_model_config: ModelWithDiscriminatorConfig = {
-        "discriminator_depth": discriminator_depth,
-        "discriminator_width": discriminator_width,
-        "discriminator_state_dim": discriminator_state_dim,
-        "use_action_for_disc": use_action_for_disc,
-        "use_history_for_disc": use_history_for_disc,
-        "time_dim": time_dim,
-        "history_range": history_range,
-    }
-    model_config = {
-        "custom_model": "model_with_discriminator",
-        "fcnet_hiddens": fcnet_hiddens,
-        "custom_model_config": custom_model_config,
-        "vf_share_layers": vf_share_layers,
-    }
 
-    config = PPOConfig().rl_module(_enable_rl_module_api=False)
-
-    config_updates: AlgorithmConfigDict = {  # noqa: F841
+    #missing update_epochs, not sure what this should be
+    config = {
         "env": env_name,
-        "env_config": env_config,
-        "disable_env_checking": True,
-        "callbacks": callbacks,
-        "num_rollout_workers": num_rollout_workers,
-        "train_batch_size": train_batch_size,
-        "sgd_minibatch_size": sgd_minibatch_size,
-        "num_sgd_iter": num_sgd_iter,
+        "bptt_horizon":rollout_fragment_length,
         "lr": lr,
         "gamma": gamma,
-        "lambda": gae_lambda,
         "kl_target": kl_target,
-        "vf_loss_coeff": vf_loss_coeff,
+        "ent_coef": entropy_coeff,
+        "vf_coef": vf_loss_coeff,
         "vf_clip_param": vf_clip_param,
-        "grad_clip": grad_clip,
-        "entropy_coeff": entropy_coeff,
-        "entropy_coeff_schedule": entropy_coeff_schedule,
-        "clip_param": clip_param,
-        "num_gpus": num_gpus,
-        "rollout_fragment_length": rollout_fragment_length,
-        "model": model_config,
-        "batch_mode": batch_mode,
-        "framework_str": "torch",
+        "vf_clip_coef": clip_param,
+        "gae_lambda": gae_lambda,
+        # "update_epochs": num_sgd_iter,
+        "max_grad_norm": grad_clip,
+        "torch_deterministic": False,
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "batch_size":"auto",
+        "minibatch_size":rollout_fragment_length,
+        # "callbacks": callbacks,
+        "model": {
+            "fcnet_hiddens": fcnet_hiddens,
+            "fcnet_activation": "relu",
+        }
     }
-    config.update_from_dict(config_updates)
-    
-    # RLlib 2.7 compatibility flags
-    config._enable_rl_module_api = False
-    config._enable_learner_api = False
-    config.enable_connectors = False
-    
+
     return config
 
 def make_cfg(delta_hi, delta_lo, num_persons=500):
@@ -260,4 +210,5 @@ def get_config():
         "safe_policy": safe_policy,
         "horizon": horizon,
     }
+    
     return env_config

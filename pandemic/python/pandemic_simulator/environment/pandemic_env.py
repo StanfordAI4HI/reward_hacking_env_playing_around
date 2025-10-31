@@ -6,8 +6,8 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type
 import gymnasium
 import numpy as np
 from gymnasium import spaces
-from ray.rllib.env.multi_agent_env import make_multi_agent
-from ray.tune.registry import register_env
+# from ray.rllib.env.multi_agent_env import make_multi_agent
+# from ray.tune.registry import register_env
 
 from .interfaces import StageSchedule
 from .done import DoneFunction
@@ -567,6 +567,7 @@ class PandemicPolicyGymEnv(PandemicGymEnv):
         obs_history_size = config["obs_history_size"]
         num_days_in_obs = config["num_days_in_obs"]
 
+        # print ("Creating PandemicPolicyGymEnv with sim_config:", sim_config)
         sim = PandemicSim.from_config(sim_config, sim_opts)
 
         if "sim_steps_per_regulation" in config:
@@ -727,8 +728,8 @@ class PandemicPolicyGymEnv(PandemicGymEnv):
             four_start=four_start,
         )
 
-register_env(
-    "pandemic_env_multiagent",
-    make_multi_agent(lambda config: PandemicPolicyGymEnv(config)),
-)
+# register_env(
+#     "pandemic_env_multiagent",
+#     make_multi_agent(lambda config: PandemicPolicyGymEnv(config)),
+# )
 

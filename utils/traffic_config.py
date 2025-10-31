@@ -2,15 +2,50 @@ import torch
 from flow.flow_cfg.get_experiment import get_exp
 import json
 from flow.utils.rllib import FlowParamsEncoder
-from occupancy_measures.envs.traffic_callbacks import TrafficCallbacks
+# from occupancy_measures.envs.traffic_callbacks import TrafficCallbacks
 from occupancy_measures.models.model_with_discriminator import ModelWithDiscriminatorConfig
 from ray.rllib.utils.typing import AlgorithmConfigDict
 from ray.rllib.algorithms.algorithm_config import AlgorithmConfig
 from ray.rllib.algorithms.ppo import PPOConfig
 
 def get_ppo_config(env_name,env_config, num_gpus, seed,num_rollout_workers=1):
+    """
+    PPO configuration for traffic environment.
+    
+    CleanRL PPO Parameter Mapping:
+    ================================
+    DIRECTLY MAPPED TO CLEANRL:
+    - lr -> learning_rate
+    - gamma -> gamma
+    - use_gae -> (always True in CleanRL PPO)
+    - gae_lambda -> gae_lambda
+    - vf_loss_coeff -> vf_coef
+    - grad_clip -> max_grad_norm (None here, means no clipping)
+    - num_sgd_iter -> update_epochs
+    - sgd_minibatch_size -> num_minibatches (computed as train_batch_size / minibatch_size)
+    - entropy_coeff -> ent_coef
+    
+    RLLIB-SPECIFIC (NO DIRECT CLEANRL EQUIVALENT):
+    - kl_target: RLlib's adaptive KL penalty target. CleanRL has target_kl but used differently.
+    - vf_clip_param: RLlib's value clipping (10000, essentially disabled). CleanRL has --clip-vloss.
+    - rollout_fragment_length: RLlib fragment size (4000). Use num_steps in CleanRL.
+    - train_batch_size: RLlib total batch. CleanRL computes as num_envs * num_steps.
+    - batch_mode: RLlib-specific. CleanRL always truncates.
+    - lr_decay_schedule: RLlib schedule. CleanRL has anneal_lr flag but simpler implementation.
+    - entropy_coeff_schedule: RLlib schedule. CleanRL doesn't support entropy scheduling.
+    - num_rollout_workers: RLlib parallelization. Use PufferLib num_envs.
+    
+    CLEANRL PARAMETERS NOT IN RLLIB:
+    - num_envs: Number of parallel environments (use PufferLib for vectorization)
+    - num_steps: Steps per env before update (maps to rollout_fragment_length)
+    - anneal_lr: Whether to anneal learning rate (RLlib has lr_schedule but more complex)
+    - norm_adv: Normalize advantages (RLlib does by default)
+    - clip_vloss: Clip value loss (different from vf_clip_param)
+    - target_kl: Early stopping KL (different from kl_target usage)
+    - clip_coef: Clip coefficient (not directly specified here, uses default)
+    """
     # Training
-    rollout_fragment_length = 4000  # default: scenario.N_ROLLOUTS * horizon
+    rollout_fragment_length = 4000  # default: scenario.N_ROLLOUTS * horizon, maps to num_steps
     train_batch_size = max(
         10 * rollout_fragment_length, rollout_fragment_length
     )
@@ -20,26 +55,26 @@ def get_ppo_config(env_name,env_config, num_gpus, seed,num_rollout_workers=1):
     lr_start = lr
     lr_end = lr
     lr_horizon = 1000000
-    lr_decay_schedule = [
+    lr_decay_schedule = [  # RLLIB-SPECIFIC: More complex than CleanRL's anneal_lr
         [0, lr_start],
         [lr_horizon, lr_end],
     ]
-    batch_mode = "truncate_episodes"
+    batch_mode = "truncate_episodes"  # RLLIB-SPECIFIC: CleanRL always truncates
 
     # PPO
     gamma = 0.99
     use_gae = True
     gae_lambda = 0.97
-    kl_target = 0.02
-    vf_clip_param = 10000
+    kl_target = 0.02  # RLLIB-SPECIFIC: Adaptive KL penalty target
+    vf_clip_param = 10000  # RLLIB-SPECIFIC: Effectively disabled (very high value)
     vf_loss_coeff = 0.5
-    grad_clip = None
+    grad_clip = None  # NOTE: No gradient clipping in this config
     num_sgd_iter = 5
     entropy_coeff = 0.01
     entropy_coeff_start = entropy_coeff
     entropy_coeff_end = entropy_coeff
     entropy_coeff_horizon = 1000000
-    entropy_coeff_schedule = [
+    entropy_coeff_schedule = [  # RLLIB-SPECIFIC: CleanRL doesn't support schedules
         [0, entropy_coeff_start],
         [entropy_coeff_horizon, entropy_coeff_end],
     ]
@@ -71,7 +106,7 @@ def get_ppo_config(env_name,env_config, num_gpus, seed,num_rollout_workers=1):
     config_updates: AlgorithmConfigDict = {  # noqa: F841
         "env": env_name,
         "env_config": env_config,
-        "callbacks": TrafficCallbacks,
+        # "callbacks": TrafficCallbacks,
         "num_rollout_workers": num_rollout_workers,
         "train_batch_size": train_batch_size,
         "sgd_minibatch_size": sgd_minibatch_size,
@@ -115,7 +150,7 @@ def get_config():
     exp_algo = "PPO"
     reward_fun = "true"
     assert reward_fun in ["true", "proxy"]
-    callbacks = TrafficCallbacks
+    # callbacks = TrafficCallbacks
     use_safe_policy_actions = False
     # Rewards and weights
     proxy_rewards = ["vel", "accel", "headway"]

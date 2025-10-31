@@ -1,20 +1,142 @@
-import ray
-from ray.tune.registry import register_env
-from ray.rllib.algorithms.ppo import PPOConfig
-import argparse
-import numpy as np
-import pickle
-from rl_utils.env_setups import setup_pandemic_env, setup_glucose_env, setup_traffic_env
-from utils.pandemic_config import get_ppo_config as get_pandemic_ppo_config
-from utils.glucose_config import get_ppo_config as get_glucose_ppo_config
-from utils.traffic_config import get_ppo_config as get_traffic_ppo_config
-import os, warnings
-from pathlib import Path
-from ray.rllib.policy.policy import Policy
-import datetime
+"""
+Training script using CleanRL's PPO implementation with PufferLib vectorization.
+Based on CleanRL's ppo_continuous_action.py: https://docs.cleanrl.dev/rl-algorithms/ppo/
+"""
 
-os.environ["PYTHONWARNINGS"] = "ignore"        # inherited by all Ray workers
+import os
+import random
+import warnings
+
+import numpy as np
+import torch
+import pufferlib
+import pufferlib.vector
+from pufferlib.emulation import GymnasiumPufferEnv
+from pufferlib import pufferl
+
+from rl_utils.env_setups import setup_pandemic_env, setup_glucose_env, setup_traffic_env
+from models.default_policy import Policy
+
+os.environ["PYTHONWARNINGS"] = "ignore"
 warnings.filterwarnings("ignore", category=UserWarning)
+
+
+
+def evaluate_with_pandemic_metrics(trainer, env_name, num_episodes=10):
+    """
+    Custom evaluation function that tracks pandemic-specific metrics
+    similar to RLlib's PandemicCallbacks.
+    
+    Tracks:
+    - true_reward and proxy_reward per episode
+    - Breakdown of reward components (true_rew_breakdown, proxy_rew_breakdown)
+    - Correlation between true and proxy rewards
+    - Modified reward if present
+    """
+    if env_name != "pandemic":
+        # For non-pandemic envs, use default evaluate
+        return trainer.evaluate()
+    
+    # Manually run evaluation episodes to collect detailed metrics
+    eval_env = trainer.vecenv.driver_env
+    policy = trainer.policy
+    device = next(policy.parameters()).device
+    
+    episode_metrics = []
+    
+    for ep in range(num_episodes):
+        obs, info = eval_env.reset()
+        done = False
+        truncated = False
+        
+        # Episode accumulators
+        total_true_reward = 0
+        total_proxy_reward = 0
+        total_modified_reward = 0
+        timestep_true_rewards = []
+        timestep_proxy_rewards = []
+        true_rew_breakdown_accum = {}
+        proxy_rew_breakdown_accum = {}
+        step_count = 0
+        
+        while not (done or truncated):
+            # Get action from policy
+            obs_tensor = torch.tensor(obs, dtype=torch.float32).unsqueeze(0).to(device)
+            with torch.no_grad():
+                logits, value = policy.forward_eval(obs_tensor)
+                # For discrete actions, sample from logits
+                if hasattr(eval_env.single_action_space, 'n'):
+                    action_probs = torch.softmax(logits, dim=-1)
+                    action = torch.argmax(action_probs, dim=-1).cpu().numpy()[0]
+                else:
+                    action = logits.cpu().numpy()[0]
+            
+            # Step environment
+            obs, reward, done, truncated, info = eval_env.step(action)
+            step_count += 1
+            
+            # Extract metrics from info
+            if isinstance(info, dict):
+                true_rew = info.get("true_rew", 0)
+                proxy_rew = info.get("proxy_rew", 0)
+                modified_rew = info.get("modified_reward", 0)
+                
+                total_true_reward += true_rew
+                total_proxy_reward += proxy_rew
+                total_modified_reward += modified_rew
+                timestep_true_rewards.append(true_rew)
+                timestep_proxy_rewards.append(proxy_rew)
+                
+                # Accumulate breakdown components
+                if "true_rew_breakdown" in info:
+                    for rew_id, rew_val in info["true_rew_breakdown"].items():
+                        if rew_id not in true_rew_breakdown_accum:
+                            true_rew_breakdown_accum[rew_id] = 0
+                        true_rew_breakdown_accum[rew_id] += rew_val
+                
+                if "proxy_rew_breakdown" in info:
+                    for rew_id, rew_val in info["proxy_rew_breakdown"].items():
+                        if rew_id not in proxy_rew_breakdown_accum:
+                            proxy_rew_breakdown_accum[rew_id] = 0
+                        proxy_rew_breakdown_accum[rew_id] += rew_val
+        
+        # Compute episode metrics
+        ep_metrics = {
+            "episode_length": step_count,
+            "true_reward": total_true_reward,
+            "proxy_reward": total_proxy_reward,
+            "modified_reward": total_modified_reward,
+        }
+        
+        # Add averaged breakdown components
+        for rew_id, rew_val in true_rew_breakdown_accum.items():
+            ep_metrics[f"true_{rew_id}"] = rew_val / step_count if step_count > 0 else 0
+        
+        for rew_id, rew_val in proxy_rew_breakdown_accum.items():
+            ep_metrics[f"proxy_{rew_id}"] = rew_val / step_count if step_count > 0 else 0
+        
+        # Compute correlation between true and proxy rewards
+        if len(timestep_true_rewards) > 1:
+            try:
+                corr = np.corrcoef(timestep_true_rewards, timestep_proxy_rewards)[0, 1]
+                ep_metrics["corr_btw_rewards"] = corr if not np.isnan(corr) else 0
+            except:
+                ep_metrics["corr_btw_rewards"] = 0
+        else:
+            ep_metrics["corr_btw_rewards"] = 0
+        
+        episode_metrics.append(ep_metrics)
+    
+    # Aggregate metrics across episodes
+    aggregated_metrics = {}
+    if episode_metrics:
+        for key in episode_metrics[0].keys():
+            values = [ep[key] for ep in episode_metrics]
+            aggregated_metrics[f"eval/{key}_mean"] = np.mean(values)
+            aggregated_metrics[f"eval/{key}_std"] = np.std(values)
+    
+    return aggregated_metrics
+
 
 def create_env(env_config, wrap_env=True):
     """Create environment based on the specified type."""
@@ -22,187 +144,113 @@ def create_env(env_config, wrap_env=True):
     reward_fun_type = env_config.get("reward_fun_type")
    
     if env_type == "pandemic":
-        return setup_pandemic_env(env_config, wrap_env)
+        # return setup_pandemic_env(env_config, wrap_env)
+        env = setup_pandemic_env(env_config, wrap_env)
+        # Test that the environment works
+        obs, info = env.reset()  # This should set _current_sim_time
+        return env
     if env_type == "glucose":
-        return setup_glucose_env(env_config,wrap_env)
+        return setup_glucose_env(env_config, wrap_env)
     if env_type == "traffic":
-        return setup_traffic_env(env_config,wrap_env)
+        return setup_traffic_env(env_config, wrap_env)
     raise ValueError(f"Unknown environment type: {env_type}")
 
 
-def rollout_policy(algo, env, num_episodes=5):
-    """Rollout the trained policy in the environment."""
-    total_rewards = []
-    for episode in range(num_episodes):
-        obs, _ = env.reset()
-        episode_reward = 0
-        done = False
-        truncated = False
-        
-        while not (done or truncated):
-            action = algo.compute_single_action(obs, explore=False)
-            obs, reward, done, truncated, _ = env.step(action)
-            episode_reward += reward
-            
-        total_rewards.append(episode_reward)
-        print(f"Episode {episode + 1} return: {episode_reward}")
-    
-    mean_reward = np.mean(total_rewards)
-    std_reward = np.std(total_rewards)
-    print(f"\nMean return over {num_episodes} episodes: {mean_reward:.2f} ± {std_reward:.2f}")
-    return mean_reward, std_reward
-
-def evaluate_policy_during_training(algo, env_config, iteration):
-    """Evaluate the current policy during training."""
-    print(f"\n=== Evaluating policy at iteration {iteration} ===")
-    
-    # Create environment for evaluation
-    eval_env = create_env(env_config, wrap_env=True)
-    
-    # Rollout the policy
-    mean_reward, std_reward = rollout_policy(algo, eval_env)
-    
-    # Cleanup
-    eval_env.close()
-    
-    return mean_reward, std_reward
-
-def strip_hist_stats(x):
-    if isinstance(x, dict):
-        x.pop("hist_stats", None)   # remove at this level
-        for v in x.values():
-            strip_hist_stats(v)     # recurse into nested dicts/lists
-    elif isinstance(x, list):
-        for item in x:
-            strip_hist_stats(item)
-
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env-type", type=str, default="pandemic", 
-                      choices=["pandemic", "glucose", "traffic"],
-                      help="Type of environment to train on")
-    parser.add_argument("--num-workers", type=int, default=2,
-                      help="Number of workers for parallel training")
-    parser.add_argument("--num-gpus", type=int, default=0,
-                      help="Number of GPUs to use")
-    parser.add_argument("--num-iterations", type=int, default=100,
-                      help="Number of training iterations")
-    parser.add_argument("--seed", type=int, default=0,
-                      help="Random seed for training")
-    parser.add_argument('--init-checkpoint', action='store_true', help='Use RLlib checkpoint for policy initialization.')
-    parser.add_argument("--reward-fun-type", type=str, default="gt_reward_fn", 
-                      choices=["gt_reward_fn", "proxy_reward_fn"],
-                      help="Type of reward function to use")
-   
-    #reward_fun_type
-    args = parser.parse_args()
+    #python3 -m rl_utils.train_with_custom_rew  --vec.seed 0 --vec.num-envs 10 --vec.num-workers 2 --train.name pandemic_gt_reward_fn --train.update-epochs 100
 
-    # Initialize Ray
-    ray.init()
+    default_config  = pufferl.load_config('default')
     
-    # Register the environment
+    env_name = default_config["train"]["name"].split("_")[0]
+    reward_fun_type = default_config["train"]["name"].replace(env_name+"_", "")
+
+    # Seeding
+    random.seed(default_config["vec"]["seed"])
+    np.random.seed(default_config["vec"]["seed"])
+    torch.manual_seed(default_config["vec"]["seed"])
     
-    print ("registering env")
-    # Get environment-specific config
-    if args.env_type == "pandemic":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+    print (f"reward_fun_type: {reward_fun_type}")
+    print (f"env_name: {env_name}")
+    # env_name = 
+    
+    # Get environment-specific config and override PPO params from config
+    if env_name == "pandemic":
         from utils.pandemic_config import get_config as get_env_config
+        from utils.pandemic_config import get_ppo_config
         env_config = get_env_config()
-        env_config["env_type"] = "pandemic"  # Add env_type to config
-        env_config["reward_fun_type"] = args.reward_fun_type
-        # env_config["reward_function2optimize"] = learned_reward
-        ppo_config = get_pandemic_ppo_config(env_config, args.num_gpus, args.seed, args.num_workers)
-        register_env("pandemic_env", create_env)
+        env_config["env_type"] = "pandemic"
+        env_config["reward_fun_type"] = reward_fun_type
         
-        # Add environment config to PPO config
-        ppo_config = ppo_config.environment("pandemic_env", env_config=env_config)
-        base_checkpoint="/next/u/stephhk/orpo/data/base_policy_checkpoints/pandemic_base_policy/checkpoint_000100/"
-
-    elif args.env_type == "traffic":
+        # Get PPO config for architecture (no parameters needed for pandemic)
+        ppo_config = get_ppo_config()
+        
+    elif env_name == "traffic":
         from utils.traffic_config import get_config as get_env_config
-        from flow.utils.registry import make_create_env
-
+        from utils.traffic_config import get_ppo_config
         env_config = get_env_config()
-        env_config["env_type"] = "traffic"  # Add env_type to config
-        env_config["reward_fun_type"] = args.reward_fun_type
-        ppo_config = get_traffic_ppo_config( "traffic_env", env_config, args.num_gpus, args.seed, args.num_workers)
-        register_env("traffic_env", create_env)
-        ppo_config = ppo_config.environment( "traffic_env", env_config=env_config)
-        base_checkpoint="/next/u/stephhk/orpo/data/base_policy_checkpoints/traffic_base_policy/checkpoint_000025"
-
-    elif args.env_type == "glucose": # glucose
+        env_config["env_type"] = "traffic"
+        env_config["reward_fun_type"] = reward_fun_type
+        ppo_config = get_ppo_config()
+        
+    elif env_name == "glucose":
         from utils.glucose_config import get_config as get_env_config
-        
+        from utils.glucose_config import get_ppo_config
         env_config = get_env_config()
-        env_config["env_type"] = "glucose"  # Add env_type to config
+        env_config["env_type"] = "glucose"
         env_config["gt_reward_fn"] = "magni_rew"
-        env_config["reward_fun_type"] = args.reward_fun_type
-        ppo_config = get_glucose_ppo_config(env_config, args.num_gpus, args.seed, args.num_workers)
-        register_env("glucose_env", create_env)
+        env_config["reward_fun_type"] = reward_fun_type
         
-        # Add environment config to PPO config
-        ppo_config = ppo_config.environment("glucose_env", env_config=env_config)
-        base_checkpoint="/next/u/stephhk/orpo/data/base_policy_checkpoints/glucose_base_policy/checkpoint_000300"
-    # Create the algorithm - explicitly specify PPO for RLlib 2.7
-    algo = ppo_config.build()
-
-    if args.init_checkpoint:
-        # Path to the default policy inside the checkpoint.
-        pol_ckpt = (
-            Path(base_checkpoint)
-            / "policies"
-            / "default_policy"          # change if your ID is different
-        )
-
-        pretrained_policy = Policy.from_checkpoint(pol_ckpt)  # env-free load  :contentReference[oaicite:0]{index=0}
-        algo.get_policy().set_weights(pretrained_policy.get_weights())  # ← weights only
-        algo.workers.sync_weights()      # push to remote workers
-        print("✔ warm-started policy from", pol_ckpt)
-   
-    # Training loop with periodic evaluation
-    evaluation_results = []
+        ppo_config = get_ppo_config()
+    # Create vectorized environments with PufferLib
+    def make_env_fn(**kwargs):
+        # print ("env config:")
+        # print (env_config)
+        return GymnasiumPufferEnv(create_env(env_config, wrap_env=True))
     
-    os.makedirs(args.env_type + "_running_results", exist_ok=True)
-    os.makedirs(args.env_type + f"_running_results/{args.reward_fun_type}", exist_ok=True)
-    save_freq=10
+    envs = pufferlib.vector.make(
+        make_env_fn,
+        num_envs=default_config["vec"]["num_envs"],
+        backend="Multiprocessing",
+        num_workers=default_config["vec"]["num_workers"]
+    )
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_root = Path("logs") / "data" / args.env_type / timestamp
-    save_root.mkdir(parents=True, exist_ok=True)
+    ppo_config["num_workers"] = default_config["vec"]["num_workers"]
+    ppo_config["num_envs"] = default_config["vec"]["num_envs"]
+    ppo_config["seed"] = default_config["vec"]["seed"]
 
-    for iteration in range(args.num_iterations):
-        # Train for one iteration
-        if iteration % save_freq == 0:
-            ckpt_path = save_root / f"checkpoint_{iteration}"
-            checkpoint = algo.save(checkpoint_dir=str(ckpt_path))
-            print (f"Saved checkpoint to {checkpoint}")
+    # Create policy using config
+    if env_name == "glucose":
+        from models.glucose_policy import GlucosePolicy
+        # For Box action space, use np.prod to get the total number of action dimensions
+        policy = GlucosePolicy(ppo_config["model"]).to(device)
+    else:   
+        policy = Policy(envs.driver_env, ppo_config).to(device)    
 
-        result = algo.train()
+    print ("action space: ", envs.driver_env.action_space)
+
+    for k in default_config["train"].keys():
+        if k in ppo_config:
+            default_config["train"][k] = ppo_config[k]
+    
+    default_config["train"]["env"] = env_name
+    trainer = pufferl.PuffeRL(default_config["train"], envs, policy)
+    print ("# of epochs: ", default_config['train']['update_epochs'])
+    for epoch in range(default_config['train']['update_epochs']):
+        print ("on epoch ", epoch)
         
-        print(f"Iteration {iteration + 1}/{args.num_iterations}")
-        #remove hist stats to save space
-        strip_hist_stats(result)
-        print (result)
+        # Use custom evaluation for pandemic to track reward breakdowns
+        if env_name == "pandemic":
+            eval_metrics = evaluate_with_pandemic_metrics(trainer, env_name, num_episodes=5)
+            print(f"Evaluation metrics: {eval_metrics}")
+        else:
+            trainer.evaluate()
         
-        with open(args.env_type + f"_running_results/{args.reward_fun_type}/iter_{iteration}.pkl", 'wb') as file:
-            pickle.dump(result, file)
-
-    print("Training completed!")
-    ckpt_path = save_root / f"checkpoint_{iteration}"
-    checkpoint = algo.save(checkpoint_dir=str(ckpt_path))
-    print (f"Saved final checkpoint to {checkpoint}")
+        logs = trainer.train()
     
-    # Final evaluation
-    print("\n=== Final Policy Evaluation ===")
-    final_mean_reward, final_std_reward = evaluate_policy_during_training(algo, env_config, args.num_iterations)
-    
-    # Print evaluation summary
-    print("\n=== Evaluation Summary ===")
-    for result in evaluation_results:
-        print(f"Iteration {result['iteration']}: {result['mean_reward']:.2f} ± {result['std_reward']:.2f}")
-    print(f"Final: {final_mean_reward:.2f} ± {final_std_reward:.2f}")
-    
-    # Cleanup
-    algo.stop()
+    print("Done!")
+    envs.close()
 
 if __name__ == "__main__":
     main()

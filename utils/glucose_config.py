@@ -1,122 +1,83 @@
 import torch
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.utils.typing import AlgorithmConfigDict
-from occupancy_measures.envs.glucose_callbacks import GlucoseCallbacks
+# from occupancy_measures.envs.glucose_callbacks import GlucoseCallbacks
 from occupancy_measures.models.glucose_models import GlucoseModelConfig
 from occupancy_measures.models.model_with_discriminator import ModelWithDiscriminatorConfig
 
-def get_ppo_config(env_config, num_gpus, seed,num_rollout_workers=1):
+def get_ppo_config():
+    
     env_name = "glucose_env"
-    num_envs_per_worker=5
+    num_envs_per_worker=5  # RLLIB-SPECIFIC: Use PufferLib num_envs instead
     lr = 1e-4
     grad_clip = 10
     gamma = 0.99
-    use_gae = True
     gae_lambda = 0.98
-    vf_loss_coeff = 1e-4
-    vf_clip_param = 100
+    vf_loss_coeff = 1e-4  # NOTE: Very small compared to CleanRL default 0.5
+    vf_clip_param = 100  # RLLIB-SPECIFIC: Different from CleanRL's clip_vloss
     entropy_coeff = 0.01
-    entropy_coeff_start = entropy_coeff
-    entropy_coeff_end = entropy_coeff
-    entropy_coeff_horizon = 1e6
-    entropy_coeff_schedule = [
-        [0, entropy_coeff_start],
-        [entropy_coeff_horizon, entropy_coeff_end],
-    ]
-    rollout_fragment_length = 2000  # default: horizon
-    train_batch_size = max(
-        rollout_fragment_length * 10 * num_envs_per_worker,
-        rollout_fragment_length * num_envs_per_worker,
-    )
-    sgd_minibatch_size = min(1024, train_batch_size)
-    kl_coeff = 0.2
-    kl_target = 1e-3
+    
+    rollout_fragment_length = 2000  # default: horizon, maps to num_steps in CleanRL
+    kl_target = 1e-3  # RLLIB-SPECIFIC: Target KL divergence
     clip_param = 0.05
-    num_sgd_iter = 4
-    batch_mode = "truncate_episodes"
-    normalize_actions = False
-    callbacks = GlucoseCallbacks
 
     # Model
     vf_share_layers = True
     num_layers = 3
     hidden_size = 64
-    discriminator_width = 256
-    discriminator_depth = 2
-    discriminator_state_dim = 2
-    use_cgm_for_obs = True
-    use_subcutaneous_glucose_obs = False
-    if use_cgm_for_obs or use_subcutaneous_glucose_obs:
-        discriminator_state_dim = 1
+    
+   
     use_action_for_disc = True
     use_history_for_disc = False
-    time_dim = 2
-    disc_history = 48  # how many intervals of five minutes of history to use for discriminator
-    if not use_history_for_disc:
-        disc_history = 1
-    history_range = (disc_history * -1, 0)
+    # time_dim = 2
+    # disc_history = 48  # how many intervals of five minutes of history to use for discriminator
+    # if not use_history_for_disc:
+    #     disc_history = 1
+    # history_range = (disc_history * -1, 0)
     model_action_scale = 10
-    glucose_custom_model_config: GlucoseModelConfig = {
-        "num_layers": num_layers,
-        "hidden_size": hidden_size,
-        "action_scale": model_action_scale,
-        "use_cgm_for_obs": use_cgm_for_obs,
-        "use_subcutaneous_glucose_obs": use_subcutaneous_glucose_obs,
-    }
-    custom_model_config: ModelWithDiscriminatorConfig = {
-        "discriminator_depth": discriminator_depth,
-        "discriminator_width": discriminator_width,
-        "discriminator_state_dim": discriminator_state_dim,
-        "use_action_for_disc": use_action_for_disc,
-        "use_history_for_disc": use_history_for_disc,
-        "time_dim": time_dim,
-        "history_range": history_range,
-        "env_specific_config": glucose_custom_model_config,
-    }
+    # glucose_custom_model_config = {
+    #     "num_layers": num_layers,
+    #     "hidden_size": hidden_size,
+    #     "action_scale": model_action_scale,
+    # }
+   
 
-    model_config = {
-        "custom_model": "glucose",
-        "custom_model_config": custom_model_config,
-        "vf_share_layers": vf_share_layers,
-        "custom_action_dist": "GlucoseBeta",
-    }
-
-
-    config = PPOConfig().rl_module(_enable_rl_module_api=False)
-    config_updates: AlgorithmConfigDict =  {  # noqa: F841
-        "env": env_name,
-        "env_config": env_config,
-        "callbacks": callbacks,
-        "num_rollout_workers": num_rollout_workers,
-        "num_envs_per_worker": num_envs_per_worker,
-        "train_batch_size": train_batch_size,
-        "sgd_minibatch_size": sgd_minibatch_size,
-        "batch_mode": batch_mode,
-        "num_sgd_iter": num_sgd_iter,
-        "lr": lr,
-        "grad_clip": grad_clip,
-        "gamma": gamma,
-        "use_gae": use_gae,
-        "lambda": gae_lambda,
-        "vf_loss_coeff": vf_loss_coeff,
-        "vf_clip_param": vf_clip_param,
-        "entropy_coeff_schedule": entropy_coeff_schedule,
-        "kl_coeff": kl_coeff,
-        "kl_target": kl_target,
-        "clip_param": clip_param,
-        "num_gpus": num_gpus,
-        "rollout_fragment_length": rollout_fragment_length,
-        "model": model_config,
-        "framework_str": "torch",
-        "normalize_actions": False,
-        "seed": seed,
-    }
-    config.update_from_dict(config_updates)
+    # model_config = {
+    #     "custom_model": "glucose",
+    #     "custom_model_config": custom_model_config,
+    #     "vf_share_layers": vf_share_layers,
+    #     "custom_action_dist": "GlucoseBeta",
+    # }
     
-    # RLlib 2.7 compatibility flags
-    config._enable_rl_module_api = False
-    config._enable_learner_api = False
-    config.enable_connectors = False
+    fcnet_hiddens = [hidden_size] * num_layers
+
+    config = {
+        "env": env_name,
+        "bptt_horizon":rollout_fragment_length,
+        "lr": lr,
+        "gamma": gamma,
+        "kl_target": kl_target,
+        "ent_coef": entropy_coeff,
+        "vf_coef": vf_loss_coeff,
+        "vf_clip_param": vf_clip_param,
+        "vf_clip_coef": clip_param,
+        "gae_lambda": gae_lambda,
+        # "update_epochs": num_sgd_iter,
+        "max_grad_norm": grad_clip,
+        "torch_deterministic": False,
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "batch_size":"auto",
+        "minibatch_size":rollout_fragment_length,
+        # "callbacks": callbacks,
+        "model": {
+            "hidden_size": hidden_size,
+            "num_layers": num_layers,
+            "action_scale": model_action_scale,
+            "fcnet_activation": "relu",
+            "custom_action_dist": "GlucoseBeta",
+            "vf_share_layers": vf_share_layers,
+        }
+    }
     
     return config
 
