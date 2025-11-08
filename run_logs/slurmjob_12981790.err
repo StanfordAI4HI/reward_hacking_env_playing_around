@@ -1,0 +1,4 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+[2025-11-06T16:22:57.464] error: *** JOB 12981790 ON next5 CANCELLED AT 2025-11-06T16:22:57 DUE to SIGNAL Terminated ***

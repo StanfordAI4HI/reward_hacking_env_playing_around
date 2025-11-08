@@ -1,0 +1,21 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+/next/u/stephhk/miniconda3/envs/rl/lib/python3.10/site-packages/ray/_private/parameter.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+/next/u/stephhk/miniconda3/envs/rl/lib/python3.10/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+2025-11-04 18:48:18,412	WARNING deprecation.py:50 -- DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+Traceback (most recent call last):
+  File "/next/u/stephhk/miniconda3/envs/rl/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/next/u/stephhk/miniconda3/envs/rl/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/train_with_custom_rew.py", line 7, in <module>
+    from rl_utils.env_setups import setup_pandemic_env, setup_glucose_env, setup_traffic_env
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/env_setups.py", line 4, in <module>
+    from occupancy_measures.experiments.traffic_experiments import create_traffic_config
+ModuleNotFoundError: No module named 'occupancy_measures.experiments'

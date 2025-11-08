@@ -25,4 +25,3 @@ class UnclampedBeta(TorchBeta):
         alpha, beta = torch.chunk(self.inputs, 2, dim=-1)  # type: ignore
         # Note: concentration0==beta, concentration1=alpha (!)
         self.dist = torch.distributions.Beta(concentration1=alpha, concentration0=beta)
-

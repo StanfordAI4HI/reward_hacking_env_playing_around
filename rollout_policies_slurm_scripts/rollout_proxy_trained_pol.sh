@@ -22,4 +22,8 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 exec 1>&2  # Redirect stdout (fd 1) to stderr (fd 2)
 
-python3 -m rl_utils.train_with_custom_rew --env-type pandemic --num-workers 10 --reward-fun-type gt_reward_fn --init-checkpoint --num-iterations 300
+python3 -m rl_utils.collect_trajectories \
+    --checkpoint-path logs/data/pandemic/20251104_185246/checkpoint_99 \
+    --env-type pandemic \
+    --num-trajectories 10 \
+    --output-dir proxy_trained_pol_trajectories

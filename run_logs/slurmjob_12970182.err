@@ -1,0 +1,7 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+2025-11-05 10:42:36,705	WARNING deprecation.py:50 -- DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+/next/u/stephhk/llm_reward_design/flow_reward_misspecification/flow/utils/flow_warnings.py:23: PendingDeprecationWarning: The attribute minGap in SumoCarFollowingParams is deprecated, use min_gap instead.
+  warnings.warn(
+/next/u/stephhk/miniconda3/envs/orpo/bin/python: Error while finding module specification for 'rl_utils.collect_trajectories.py' (ModuleNotFoundError: __path__ attribute not found on 'rl_utils.collect_trajectories' while trying to find 'rl_utils.collect_trajectories.py'). Try using 'rl_utils.collect_trajectories' instead of 'rl_utils.collect_trajectories.py' as the module name.

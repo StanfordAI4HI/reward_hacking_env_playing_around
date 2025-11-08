@@ -1,0 +1,47 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+2025-11-05 11:37:37,150	WARNING deprecation.py:50 -- DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+/next/u/stephhk/llm_reward_design/flow_reward_misspecification/flow/utils/flow_warnings.py:23: PendingDeprecationWarning: The attribute minGap in SumoCarFollowingParams is deprecated, use min_gap instead.
+  warnings.warn(
+2025-11-05 11:37:46,496	INFO worker.py:1642 -- Started a local Ray instance.
+2025-11-05 11:37:53,871	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+2025-11-05 11:37:53,871	WARNING algorithm_config.py:2592 -- Setting `exploration_config={'type': 'StochasticSampling'}` because you set `_enable_rl_module_api=False`. This exploration config was restored from a prior exploration config that was overriden when setting `_enable_rl_module_api=True`. This occurs because when RLModule API are enabled, exploration_config can not be set.
+2025-11-05 11:37:53,875	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/algorithms/algorithm.py:484: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+`UnifiedLogger` will be removed in Ray 2.7.
+  return UnifiedLogger(config, logdir, loggers=None)
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `JsonLogger interface is deprecated in favor of the `ray.tune.json.JsonLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `CSVLogger interface is deprecated in favor of the `ray.tune.csv.CSVLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `TBXLogger interface is deprecated in favor of the `ray.tune.tensorboardx.TBXLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+[2m[36m(pid=3396972)[0m DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m /next/u/stephhk/llm_reward_design/flow_reward_misspecification/flow/utils/flow_warnings.py:23: PendingDeprecationWarning: The attribute minGap in SumoCarFollowingParams is deprecated, use min_gap instead.
+[2m[36m(RolloutWorker pid=3396972)[0m   warnings.warn(
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:01,065	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:01,068	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_modelv2.TorchModelV2` has been deprecated. Use `ray.rllib.core.rl_module.rl_module.RLModule` instead. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:01,068	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.fcnet.FullyConnectedNetwork` has been deprecated. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:01,082	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+2025-11-05 11:38:04,689	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:04,603	WARNING deprecation.py:50 -- DeprecationWarning: `ValueNetworkMixin` has been deprecated. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:04,603	WARNING deprecation.py:50 -- DeprecationWarning: `LearningRateSchedule` has been deprecated. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:04,603	WARNING deprecation.py:50 -- DeprecationWarning: `EntropyCoeffSchedule` has been deprecated. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:04,603	WARNING deprecation.py:50 -- DeprecationWarning: `KLCoeffMixin` has been deprecated. This will raise an error in the future!
+[2m[36m(RolloutWorker pid=3396972)[0m 2025-11-05 11:38:04,608	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_action_dist.TorchDistributionWrapper` has been deprecated. Use `ray.rllib.models.torch.torch_distributions.TorchCategorical` instead. This will raise an error in the future!
+2025-11-05 11:38:04,695	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_modelv2.TorchModelV2` has been deprecated. Use `ray.rllib.core.rl_module.rl_module.RLModule` instead. This will raise an error in the future!
+2025-11-05 11:38:04,696	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.fcnet.FullyConnectedNetwork` has been deprecated. This will raise an error in the future!
+2025-11-05 11:38:04,710	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+2025-11-05 11:38:06,893	WARNING deprecation.py:50 -- DeprecationWarning: `ValueNetworkMixin` has been deprecated. This will raise an error in the future!
+2025-11-05 11:38:06,893	WARNING deprecation.py:50 -- DeprecationWarning: `LearningRateSchedule` has been deprecated. This will raise an error in the future!
+2025-11-05 11:38:06,893	WARNING deprecation.py:50 -- DeprecationWarning: `EntropyCoeffSchedule` has been deprecated. This will raise an error in the future!
+2025-11-05 11:38:06,893	WARNING deprecation.py:50 -- DeprecationWarning: `KLCoeffMixin` has been deprecated. This will raise an error in the future!
+2025-11-05 11:38:06,988	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_action_dist.TorchDistributionWrapper` has been deprecated. Use `ray.rllib.models.torch.torch_distributions.TorchCategorical` instead. This will raise an error in the future!
+2025-11-05 11:38:07,798	INFO trainable.py:188 -- Trainable.setup took 13.841 seconds. If your trainable is slow to initialize, consider setting reuse_actors=True to reduce actor creation overheads.
+2025-11-05 11:38:07,872	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+discriminator weights do not match the current discriminator architecture; ignoring discriminator weights
+[2025-11-05T11:42:54.766] error: *** JOB 12970530 ON next5 CANCELLED AT 2025-11-05T11:42:54 DUE to SIGNAL Terminated ***

@@ -32,6 +32,7 @@ class ModelWithDiscriminatorConfig(TypedDict, total=False):
 
 EPS = 1e-10
 
+
 class ModelWithDiscriminator(TorchModelV2, nn.Module):
     def __init__(self, obs_space, action_space, num_outputs, model_config, name):
         TorchModelV2.__init__(

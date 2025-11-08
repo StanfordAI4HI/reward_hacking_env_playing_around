@@ -1,0 +1,8 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+2025-11-05 10:39:41,885	WARNING deprecation.py:50 -- DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+Traceback (most recent call last):
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 12, in <module>
+    from rl_utils.env_setups import setup_pandemic_env, setup_glucose_env, setup_traffic_env
+ModuleNotFoundError: No module named 'rl_utils'

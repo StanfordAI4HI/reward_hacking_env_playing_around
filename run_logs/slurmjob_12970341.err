@@ -1,0 +1,67 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+2025-11-05 11:03:37,274	WARNING deprecation.py:50 -- DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+/next/u/stephhk/llm_reward_design/flow_reward_misspecification/flow/utils/flow_warnings.py:23: PendingDeprecationWarning: The attribute minGap in SumoCarFollowingParams is deprecated, use min_gap instead.
+  warnings.warn(
+2025-11-05 11:03:46,002	INFO worker.py:1642 -- Started a local Ray instance.
+2025-11-05 11:03:53,753	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+2025-11-05 11:03:53,753	WARNING algorithm_config.py:2592 -- Setting `exploration_config={'type': 'StochasticSampling'}` because you set `_enable_rl_module_api=False`. This exploration config was restored from a prior exploration config that was overriden when setting `_enable_rl_module_api=True`. This occurs because when RLModule API are enabled, exploration_config can not be set.
+2025-11-05 11:03:53,757	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/algorithms/algorithm.py:484: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+`UnifiedLogger` will be removed in Ray 2.7.
+  return UnifiedLogger(config, logdir, loggers=None)
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `JsonLogger interface is deprecated in favor of the `ray.tune.json.JsonLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `CSVLogger interface is deprecated in favor of the `ray.tune.csv.CSVLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `TBXLogger interface is deprecated in favor of the `ray.tune.tensorboardx.TBXLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+2025-11-05 11:03:54,365	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+2025-11-05 11:03:54,367	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_modelv2.TorchModelV2` has been deprecated. Use `ray.rllib.core.rl_module.rl_module.RLModule` instead. This will raise an error in the future!
+2025-11-05 11:03:54,368	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.fcnet.FullyConnectedNetwork` has been deprecated. This will raise an error in the future!
+2025-11-05 11:03:54,377	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+2025-11-05 11:03:57,360	WARNING deprecation.py:50 -- DeprecationWarning: `ValueNetworkMixin` has been deprecated. This will raise an error in the future!
+2025-11-05 11:03:57,360	WARNING deprecation.py:50 -- DeprecationWarning: `LearningRateSchedule` has been deprecated. This will raise an error in the future!
+2025-11-05 11:03:57,360	WARNING deprecation.py:50 -- DeprecationWarning: `EntropyCoeffSchedule` has been deprecated. This will raise an error in the future!
+2025-11-05 11:03:57,360	WARNING deprecation.py:50 -- DeprecationWarning: `KLCoeffMixin` has been deprecated. This will raise an error in the future!
+2025-11-05 11:03:57,366	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_action_dist.TorchDistributionWrapper` has been deprecated. Use `ray.rllib.models.torch.torch_distributions.TorchCategorical` instead. This will raise an error in the future!
+2025-11-05 11:03:57,424	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+discriminator weights do not match the current discriminator architecture; ignoring discriminator weights
+Traceback (most recent call last):
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 250, in <module>
+    main()
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 239, in main
+    collect_trajectories(
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 154, in collect_trajectories
+    trajectory = collect_trajectory(algo, eval_env, env_type)
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 67, in collect_trajectory
+    next_obs, next_obs_np, reward, terminated, truncated, info = env.step_keep_obs_obj(action)
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/pandemic_env.py", line 393, in step_keep_obs_obj
+    obs,obs_np, reward, terminated, truncated, info = self._step_keep_obs_obj(action)
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/pandemic_env.py", line 429, in _step_keep_obs_obj
+    self._pandemic_sim.step()
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/pandemic_sim.py", line 490, in step
+    self._persons[i].step(self._state.sim_time, self._contact_tracer)
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/person/worker.py", line 110, in step
+    ret = execute_routines(
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/person/routine_utils.py", line 81, in execute_routines
+    if person.enter_location(end_loc):
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/person/base.py", line 76, in enter_location
+    return self._registry.register_person_entry_in_location(self.id, location_id)
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/city_registry.py", line 122, in register_person_entry_in_location
+    and not next_location.is_entry_allowed(person_id)
+  File "/next/u/stephhk/llm_reward_design/pandemic/python/pandemic_simulator/environment/interfaces/location_base.py", line 99, in is_entry_allowed
+    allow_visitor = self._current_sim_time in self._state.visitor_time and (
+AttributeError: 'GroceryStore' object has no attribute '_current_sim_time'
+Loading policy from /next/u/stephhk/orpo/data/base_policy_checkpoints/pandemic_base_policy/checkpoint_000100/policies/default_policy...
+✔ Policy loaded successfully
+
+Collecting 50 trajectories...

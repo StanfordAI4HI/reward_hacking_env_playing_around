@@ -7,7 +7,7 @@ from ray.rllib.models.torch.torch_action_dist import TorchDistributionWrapper
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 from ray.rllib.utils.annotations import override
 from ray.rllib.utils.typing import List
-import torch.nn as nn
+
 from .action_distributions import UnclampedBeta
 
 
@@ -15,7 +15,7 @@ class GlucoseBeta(UnclampedBeta):
     def __init__(
         self,
         inputs: List[torch.Tensor],
-        model: nn.Module,
+        model: TorchModelV2,
         low: float = 0,
         high: float = 0.1,
     ):
@@ -40,8 +40,6 @@ class GlucoseBeta(UnclampedBeta):
     @override(TorchDistributionWrapper)
     def kl(self, other: ActionDistribution) -> torch.Tensor:
         return cast(torch.Tensor, super().kl(other).sum(-1))
-
-
 
 
 ModelCatalog.register_custom_action_dist("GlucoseBeta", GlucoseBeta)

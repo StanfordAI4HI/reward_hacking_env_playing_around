@@ -1,0 +1,69 @@
+
+CondaError: Run 'conda init' before 'conda activate'
+
+2025-11-05 10:58:31,135	WARNING deprecation.py:50 -- DeprecationWarning: `DirectStepOptimizer` has been deprecated. This will raise an error in the future!
+/next/u/stephhk/llm_reward_design/flow_reward_misspecification/flow/utils/flow_warnings.py:23: PendingDeprecationWarning: The attribute minGap in SumoCarFollowingParams is deprecated, use min_gap instead.
+  warnings.warn(
+2025-11-05 10:58:38,602	INFO worker.py:1642 -- Started a local Ray instance.
+2025-11-05 10:58:45,921	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+2025-11-05 10:58:45,922	WARNING algorithm_config.py:2592 -- Setting `exploration_config={'type': 'StochasticSampling'}` because you set `_enable_rl_module_api=False`. This exploration config was restored from a prior exploration config that was overriden when setting `_enable_rl_module_api=True`. This occurs because when RLModule API are enabled, exploration_config can not be set.
+2025-11-05 10:58:45,925	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/algorithms/algorithm.py:484: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+`UnifiedLogger` will be removed in Ray 2.7.
+  return UnifiedLogger(config, logdir, loggers=None)
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `JsonLogger interface is deprecated in favor of the `ray.tune.json.JsonLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `CSVLogger interface is deprecated in favor of the `ray.tune.csv.CSVLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS="ignore::DeprecationWarning"
+The `TBXLogger interface is deprecated in favor of the `ray.tune.tensorboardx.TBXLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+2025-11-05 10:58:46,463	WARNING algorithm_config.py:2578 -- Setting `exploration_config={}` because you set `_enable_rl_module_api=True`. When RLModule API are enabled, exploration_config can not be set. If you want to implement custom exploration behaviour, please modify the `forward_exploration` method of the RLModule at hand. On configs that have a default exploration config, this must be done with `config.exploration_config={}`.
+2025-11-05 10:58:46,465	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_modelv2.TorchModelV2` has been deprecated. Use `ray.rllib.core.rl_module.rl_module.RLModule` instead. This will raise an error in the future!
+2025-11-05 10:58:46,465	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.fcnet.FullyConnectedNetwork` has been deprecated. This will raise an error in the future!
+2025-11-05 10:58:46,474	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+2025-11-05 10:58:48,943	WARNING deprecation.py:50 -- DeprecationWarning: `ValueNetworkMixin` has been deprecated. This will raise an error in the future!
+2025-11-05 10:58:48,943	WARNING deprecation.py:50 -- DeprecationWarning: `LearningRateSchedule` has been deprecated. This will raise an error in the future!
+2025-11-05 10:58:48,943	WARNING deprecation.py:50 -- DeprecationWarning: `EntropyCoeffSchedule` has been deprecated. This will raise an error in the future!
+2025-11-05 10:58:48,943	WARNING deprecation.py:50 -- DeprecationWarning: `KLCoeffMixin` has been deprecated. This will raise an error in the future!
+2025-11-05 10:58:48,949	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.models.torch.torch_action_dist.TorchDistributionWrapper` has been deprecated. Use `ray.rllib.models.torch.torch_distributions.TorchCategorical` instead. This will raise an error in the future!
+2025-11-05 10:58:48,999	WARNING catalog.py:629 -- Custom ModelV2 should accept all custom options as **kwargs, instead of expecting them in config['custom_model_config']!
+discriminator weights do not match the current discriminator architecture; ignoring discriminator weights
+Traceback (most recent call last):
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 249, in <module>
+    main()
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 238, in main
+    collect_trajectories(
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 153, in collect_trajectories
+    trajectory = collect_trajectory(algo, eval_env, env_type)
+  File "/next/u/stephhk/reward_hacking_env_playing_around/rl_utils/collect_trajectories.py", line 62, in collect_trajectory
+    action = policy.compute_single_action(obs, explore=False)
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/algorithms/algorithm.py", line 1651, in compute_single_action
+    action, state, extra = policy.compute_single_action(
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/policy/policy.py", line 551, in compute_single_action
+    out = self.compute_actions_from_input_dict(
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/policy/torch_policy_v2.py", line 571, in compute_actions_from_input_dict
+    return self._compute_action_helper(
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/utils/threading.py", line 32, in wrapper
+    raise e
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/utils/threading.py", line 24, in wrapper
+    return func(self, *a, **k)
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/policy/torch_policy_v2.py", line 1291, in _compute_action_helper
+    dist_inputs, state_out = self.model(input_dict, state_batches, seq_lens)
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/models/modelv2.py", line 259, in __call__
+    res = self.forward(restored, state or [], seq_lens)
+  File "/next/u/stephhk/reward_hacking_env_playing_around/occupancy_measures/models/model_with_discriminator.py", line 106, in forward
+    return self.net.forward(input_dict, state, seq_lens)
+  File "/next/u/stephhk/miniconda3/envs/orpo/lib/python3.9/site-packages/ray/rllib/models/torch/fcnet.py", line 150, in forward
+    obs = input_dict["obs_flat"].float()
+AttributeError: 'numpy.ndarray' object has no attribute 'float'
+Loading policy from /next/u/stephhk/orpo/data/base_policy_checkpoints/pandemic_base_policy/checkpoint_000100/policies/default_policy...
+✔ Policy loaded successfully
+
+Collecting 50 trajectories...
